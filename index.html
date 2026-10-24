@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ESP32 自造筆記</title>
+  <meta name="description" content="從零開始的 ESP32 + OLED 學習歷程、作品展示與學習日誌">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2316a34a'/><rect x='22' y='30' width='56' height='40' rx='6' fill='%230b1210'/><circle cx='40' cy='50' r='6' fill='%23a7f3d0'/><circle cx='60' cy='50' r='6' fill='%23a7f3d0'/></svg>">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#home" aria-label="回首頁">
+        <span class="brand-chip" aria-hidden="true"><i></i><i></i></span>
+        <span class="brand-text">ESP32 自造筆記</span>
+      </a>
+      <button class="menu-btn" id="menuBtn" aria-label="開啟選單" aria-expanded="false">☰</button>
+      <nav class="nav" id="nav">
+        <a href="#home">首頁</a>
+        <a href="#learn">學習地圖</a>
+        <a href="#works">作品展示</a>
+        <a href="#journal">學習日誌</a>
+        <a href="#fix">問題排除</a>
+        <a href="#parts">零件清單</a>
+        <a href="#next">下一步</a>
+      </nav>
+      <button class="theme-btn" id="themeBtn" aria-label="切換深色模式"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+    </div>
+  </header>
+
+  <main id="app" class="wrap"></main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span id="footText"></span>
+      <span class="muted">以 ESP32 + 1.3" OLED 打造 · 靜態網站，可免費部署</span>
+    </div>
+  </footer>
+
+  <!-- 作品詳細 / 圖片放大 -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-box" role="dialog" aria-modal="true">
+      <button class="modal-close" data-close aria-label="關閉">✕</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="data/content.js"></script>
+  <script src="data/my-journal.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
