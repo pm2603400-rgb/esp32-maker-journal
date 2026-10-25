@@ -18,8 +18,8 @@ window.WORKS = [
     status: "使用中",
     featured: true,
     cover: "assets/img/shepherd-v2.gif",
-    tags: ["動畫", "AI 繪圖", "WiFi 更新", "按鈕互動"],
-    summary: "用 AI 畫好 sprite sheet，再轉成 OLED 點陣圖。白底黑線、會撿球、睡覺、探頭，按 BOOT 鍵就丟球給牠。",
+    tags: ["動畫", "AI 繪圖", "WiFi 更新", "手機控制"],
+    summary: "用 AI 畫好 sprite sheet，再轉成 OLED 點陣圖。白底黑線、會撿球、睡覺、探頭；用手機控制網頁就能丟球、切換劇情。",
     highlights: [
       "AI 畫圖 → Python 自動切格、縮小、轉 1-bit 點陣圖",
       "整個畫面黑白反轉，看起來跟原圖一樣（白底黑線）",
@@ -33,6 +33,29 @@ window.WORKS = [
     ],
     gallery: ["assets/img/shepherd-spritesheet.jpg", "assets/img/shepherd-walk-strip.jpg"],
     code: "code/german_shepherd_v2.ino",
+  },
+  {
+    id: "phone-remote-ota",
+    title: "手機遙控 + GitHub 自動更新韌體",
+    date: "2026-10-24",
+    status: "完成",
+    cover: "assets/img/phone-remote.png",
+    tags: ["WiFi 更新", "GitHub Actions", "手機控制"],
+    summary: "不用電腦、不用 BOOT 鍵：手機改 GitHub 上的程式，雲端自動編譯，ESP32 自己下載更新；手機網頁可以丟球、切換劇情。",
+    highlights: [
+      "GitHub Actions 自動編譯 → 發布到 Releases（firmware.bin + version.txt）",
+      "ESP32 每 10 分鐘比對版本號，有新版才下載、寫入、重開機",
+      "WiFi 帳密存在 ESP32 內部記憶體（NVS），程式公開也不會外洩",
+      "手機打開 http://esp32-dog.local：丟球、散步、嗅聞、坐下、睡覺、立即檢查更新",
+      "所有功能集中在 runCommand()，之後的無線遙控器直接沿用",
+    ],
+    lessons: [
+      "OTA 只換「程式區」，設定區（WiFi 帳密）不會被覆蓋",
+      "Partition Scheme 要選 Minimal SPIFFS（有 OTA），而且電腦和雲端編譯設定要一致",
+      "藏在公仔裡的按鍵不實用 → 改成手機網頁和無線遙控",
+    ],
+    gallery: [],
+    code: "code/dog_github_ota.ino",
   },
   {
     id: "heart-hen-v3",
@@ -265,6 +288,8 @@ ArduinoOTA.setPassword("1234");
   <li><b>不要用烙鐵直接焊鋰電池本體</b>；用電池座或附線電池。</li>
   <li>電池不能封死在黏土裡：要能拿出來、周圍墊泡棉、遠離發熱處。</li>
   <li>電源開關接在電池正極和模組 BAT+ 之間；充電時開關要打開。</li>
+  <li><b>電池線不要用膠帶固定</b>：接觸不穩、B+ 和 B− 很近容易短路。臨時測試用<b>鱷魚夾測試線</b>。</li>
+  <li>之後改用 <b>XIAO</b>：電池直接接 XIAO 背面的 BAT+／BAT−，<b>不需要升壓模組</b>，600mAh 也剛好。</li>
 </ul>`,
   },
   {
@@ -280,6 +305,101 @@ ArduinoOTA.setPassword("1234");
   <li>便利貼內容不要放病人資料等敏感資訊。</li>
 </ul>`,
   },
+  {
+    id: "phone-ota",
+    no: "10",
+    title: "用手機更新韌體（GitHub Actions）",
+    level: "進階",
+    body: `
+<pre><code>手機改 GitHub 上的 dog.ino → Commit
+     ↓ GitHub Actions 自動編譯（約 3～5 分鐘）
+Releases 出現 firmware.bin、version.txt
+     ↓ ESP32 每 10 分鐘檢查（手機網頁可立即檢查）
+下載 → 寫入 → 自動重開機</code></pre>
+<ul>
+  <li><b>記憶體分區</b>：設定區（NVS，放 WiFi 帳密）＋ 程式區 A ＋ 程式區 B。新版下載到另一區，成功才切換 → 不會變磚，帳密也不會被蓋掉。</li>
+  <li><b>帳密不寫進程式</b>：先用 USB 上傳 <code>wifi_setup.ino</code> 寫進 NVS，GitHub 上的程式就能公開。</li>
+  <li><b>Partition Scheme</b>：選 <code>Minimal SPIFFS (1.9MB APP with OTA)</code>，雲端編譯用 <code>PartitionScheme=min_spiffs</code>，兩邊一致。</li>
+  <li><b>版本號</b>：Actions 把第幾次編譯寫進 <code>version.h</code>，ESP32 比對 <code>version.txt</code> 決定要不要更新。</li>
+  <li><b>手機控制網頁</b>：ESP32 內建 <code>WebServer</code>，手機開 <code>http://esp32-dog.local</code> 就能操作。</li>
+</ul>
+<div class="figs"><figure><img src="assets/img/phone-remote.png" alt="手機控制網頁"><figcaption>手機控制網頁</figcaption></figure></div>`,
+  },
+  {
+    id: "multimeter",
+    no: "11",
+    title: "三用電錶：量電池電壓",
+    level: "入門",
+    body: `
+<ol>
+  <li>把表筆從側邊槽拿出來，旋鈕轉到 <b>⎓V</b>（V 上面一條直線＋虛線，量直流電）。<span class="warn">不要轉到 ~V</span>（那是交流電）。</li>
+  <li><b>黑表筆碰電池黑線、紅表筆碰電池紅線</b>，看讀數。電錶會自動換量程。</li>
+  <li>數字一直跳 → 表筆<b>壓穩</b>；或按藍色 <b>H 鍵</b>鎖定讀數，再按一次解除。</li>
+  <li>量完轉回 <b>OFF</b>。</li>
+</ol>
+<table class="mini"><tr><th>讀數</th><th>意思</th></tr>
+<tr><td>4.1～4.2V</td><td>充飽</td></tr><tr><td>3.7～4.0V</td><td>正常（我量到 3.8～3.9V）</td></tr>
+<tr><td>3.3～3.6V</td><td>快沒電</td></tr><tr><td>3.0V 以下</td><td>過低，先別用</td></tr>
+<tr><td>前面有「−」</td><td>表筆接反，對調即可，不會壞</td></tr></table>
+<div class="figs"><figure><img src="assets/img/multimeter-vc921.jpg" alt="ZOYI VC921 三用電錶"><figcaption>ZOYI VC921 迷你電錶（NT$320）</figcaption></figure></div>
+<p class="tip">⚠️ 兩根表筆的金屬頭不能互碰、不能同時夾在同一條線上，否則電池短路。量電池<b>只用 ⎓V</b>，電阻檔和嗶嗶檔不能量有電的東西。<br>💡 嗶嗶檔（🔊）可以檢查杜邦線有沒有斷、麵包板電源排中間有沒有斷開。</p>`,
+  },
+  {
+    id: "breadboard",
+    no: "12",
+    title: "麵包板怎麼接",
+    level: "入門",
+    body: `
+<pre><code> +  ●●●●● ●●●●● ●●●●●   ← 電源排：整條橫向相通
+ −  ●●●●● ●●●●● ●●●●●
+      1  2  3  4  5 ... 30
+  a   ●  ●  ●  ●  ●
+  …   ●  ●  ●  ●  ●     ← 同一個數字的 a～e 五孔相通
+  e   ●  ●  ●  ●  ●
+     ═══ 中間的溝：上下不相通 ═══
+  f～j 同理
+ +/− 電源排（下方）</code></pre>
+<ul>
+  <li><b>同一個數字、同一半邊的 5 個孔相通</b>；隔著中間溝的不通。</li>
+  <li><b>+ / − 長排整條相通</b>，拿來當 3.3V 和 GND，讓多個零件一起取電。</li>
+  <li>同一個直排只插「應該相通」的腳；<span class="warn">+ 排和 − 排絕對不能接在一起</span>。</li>
+</ul>
+<p><b>實作：OLED 插在麵包板，ESP32 用公對母杜邦線接過來</b></p>
+<table class="mini"><tr><th>OLED 腳（插 5e～8e）</th><th>ESP32</th></tr>
+<tr><td>GND（第 5 排）</td><td>GND</td></tr><tr><td>VCC（第 6 排）</td><td>3V3</td></tr>
+<tr><td>SCL（第 7 排）</td><td>D22</td></tr><tr><td>SDA（第 8 排）</td><td>D21</td></tr></table>
+<div class="figs"><figure><img src="assets/img/parts-batch2.jpg" alt="0.96 吋 OLED、400 孔麵包板、公對母杜邦線"><figcaption>第二批：0.96 吋 OLED、400 孔麵包板、公對母杜邦線</figcaption></figure></div>
+<p class="tip">💡 <b>ESP32E 30P 不用插麵包板</b>：30 根腳很緊、板子太寬會把孔蓋滿，硬壓會壓彎腳。放旁邊用公對母杜邦線拉過來就好。之後的 XIAO 很小，可以直接插中間。<br>💡 接 MPU6050 時：3V3 → + 排、GND → − 排，兩個零件的 SDA 插同一排、SCL 插同一排，就能共用 I2C。</p>`,
+  },
+  {
+    id: "upgrade-plan",
+    no: "13",
+    title: "升級規劃：小板子、傾斜、觸控、螢幕",
+    level: "規劃",
+    body: `
+<p><b>小板子：XIAO 取代「ESP32E + 充電模組」</b>（店裡買不到 C3，S3 一樣可以）</p>
+<table class="mini"><tr><th></th><th>XIAO ESP32-C3</th><th>XIAO ESP32-S3</th></tr>
+<tr><td>電池充電</td><td>有</td><td>有</td></tr>
+<tr><td>內建觸控</td><td>沒有，要加 TTP223</td><td><b>有</b>，接線或銅箔就能摸</td></tr>
+<tr><td>效能</td><td>一般</td><td>較強，適合之後的彩色螢幕</td></tr>
+<tr><td>缺點</td><td></td><td>較耗電、稍熱、較貴</td></tr></table>
+<ul>
+  <li>買<b>一般版</b>，不要買 Sense 版（多了相機用不到）；確認<b>附天線</b>。</li>
+  <li>腳要自己焊排針，才能插麵包板。</li>
+</ul>
+<p><b>傾斜感應：要找「三軸加速度計／六軸陀螺儀」</b></p>
+<ul>
+  <li>可以用：<b>MPU6050（GY-521）</b>首選、ADXL345、MPU6500／MPU9250、LIS3DH、BMI160。都是 I2C 4 條線，可和 OLED 共用。</li>
+  <li><span class="warn">不能用</span>：SW-520D、KY-020 這類「傾斜開關」，裡面只是鋼珠，只知道「有斜／沒斜」，分不出方向和角度。</li>
+  <li>店家通常放在「感測器／陀螺儀」區，直接問「GY-521」最快；沒有就網購。</li>
+</ul>
+<div class="figs"><figure><img src="assets/img/tilt-switch-shelf.jpg" alt="SW-520D 傾斜開關"><figcaption>店裡的「傾斜模組」是鋼珠開關，不是我要的</figcaption></figure></div>
+<p><b>螢幕：兩塊腳位一樣，換晶片設定那一行</b></p>
+<table class="mini"><tr><th>螢幕</th><th>晶片</th><th>程式</th></tr>
+<tr><td>1.3 吋（舊）</td><td>SH1106</td><td><code>U8G2_SH1106_128X64_NONAME_F_HW_I2C</code></td></tr>
+<tr><td>0.96 吋（新）</td><td>SSD1306</td><td><code>U8G2_SSD1306_128X64_NONAME_F_HW_I2C</code></td></tr></table>
+<p class="tip">💡 晶片設錯螢幕不會壞，只是畫面偏 2 格、有雜訊線或亂掉。兩塊都是 128×64，動畫換一行就能直接跑。<br>⚠️ 換螢幕前看清楚板子上印的 VCC／GND 順序，有些 0.96 吋是反過來的。<br>📺 其他可考慮：1.5 吋 SSD1327（16 階灰）、1.28 吋圓形 GC9A01（當眼睛）、0.96 吋彩色 ST7735。</p>`,
+  },
 ];
 
 /* ---------------- 問題排除 ---------------- */
@@ -294,6 +414,14 @@ window.FIXES = [
   { q: "OTA：invalid int value '{upload.port.properties.port}'", cause: "IDE 的網路連接埠資料過期", fix: "工具 → 連接埠 重新選一次，或重開 Arduino IDE" },
   { q: "OTA：找不到網路連接埠", cause: "程式裡 WiFi 帳密是預設值，ESP32 根本沒連上", fix: "填好熱點帳密，再用 USB 上傳一次" },
   { q: "OTA：100% Done 後一直 Timeout", cause: "ESP32 重開機太快，沒回傳完成訊號", fix: "螢幕已更新就按 CANCEL，可忽略" },
+  { q: "自動更新會不會把 WiFi 帳密蓋掉？", cause: "擔心整個記憶體被換掉", fix: "不會，OTA 只寫程式區；帳密存在 NVS 設定區，除非重新上傳 wifi_setup 或清除整片 Flash" },
+  { q: "換成 0.96 吋 OLED 畫面偏移、有雜訊線或亂掉", cause: "0.96 吋是 SSD1306，程式還是 SH1106 的設定", fix: "把 U8G2_SH1106_… 那一行換成 U8G2_SSD1306_128X64_NONAME_F_HW_I2C，重新上傳；螢幕不會壞" },
+  { q: "ESP32 開發板插不進麵包板", cause: "30 根腳一起插太緊，板子也太寬會蓋滿孔", fix: "不要硬壓；ESP32 放旁邊，用公對母杜邦線接到麵包板" },
+  { q: "店裡的「傾斜模組」能不能代替 MPU6050？", cause: "SW-520D／KY-020 是鋼珠開關，只有開和關", fix: "找 GY-521（MPU6050）或 ADXL345，在感測器／陀螺儀區或網購" },
+  { q: "三用電錶數字一直跳", cause: "表筆沒壓穩，接觸時好時壞", fix: "表筆壓穩；或按 H 鍵鎖定讀數" },
+  { q: "三用電錶讀數前面有負號", cause: "紅黑表筆接反", fix: "對調表筆即可，⎓V 檔接反不會壞" },
+  { q: "沒焊接，電池線可以用膠帶固定嗎？", cause: "膠帶接觸不穩，B+／B− 很近容易短路", fix: "不要用膠帶；臨時用鱷魚夾測試線，或等改用 XIAO 直接接電池" },
+  { q: "公仔裡按不到 BOOT 鍵", cause: "BOOT 鍵在板子上，裝進外殼就被蓋住", fix: "改用手機控制網頁（esp32-dog.local），之後換無線遙控器" },
 ];
 
 /* ---------------- 零件清單 ---------------- */
@@ -301,11 +429,20 @@ window.PARTS = [
   { name: "ESP32E 開發板 30P Type-C", spec: "ESP-32E、CH340", price: 315, status: "已有" },
   { name: "1.3 吋 OLED 128×64", spec: "I2C、SH1106、白色", price: null, status: "已有" },
   { name: "ESP32S 擴展板 38PIN", spec: "X0194-1", price: 80, status: "不相容" },
-  { name: "鋰電池充電升壓模組", spec: "X0178-1、Type-C、輸出 5～27V", price: 35, status: "已有" },
+  { name: "鋰電池充電升壓模組", spec: "X0178-1、Type-C、輸出 5～27V（改用 XIAO 後可不用）", price: 35, status: "已有" },
   { name: "3.7V 軟包鋰電池", spec: "802530、600mAh", price: null, status: "已有" },
   { name: "杜邦線", spec: "公對公、母對母", price: null, status: "已有" },
-  { name: "三用電錶", spec: "數位式，DC 電壓檔", price: null, status: "待買" },
-  { name: "軟包鋰電池（有保護板）", spec: "1000～2000mAh，例如 103450", price: null, status: "待買" },
+  { name: "公對母杜邦線", spec: "40P 彩虹排線 10cm、X1001-3", price: 40, status: "已有" },
+  { name: "0.96 吋 OLED 128×64", spec: "X0048、I2C、SSD1306、白色", price: 120, status: "已有" },
+  { name: "400 孔麵包板", spec: "EIC-801（MB-101）半尺寸", price: 70, status: "已有" },
+  { name: "三用電錶", spec: "ZOYI VC921 迷你電錶（附電容檔）", price: 320, status: "已有" },
+  { name: "烙鐵工具組", spec: "烙鐵、焊錫、烙鐵架", price: null, status: "已有" },
+  { name: "XIAO ESP32-S3", spec: "一般版（非 Sense）、確認附天線；C3 店裡缺貨", price: null, status: "待買" },
+  { name: "MPU6050 六軸感測器", spec: "GY-521（或 ADXL345），傾斜功能", price: null, status: "待買" },
+  { name: "TTP223 觸控模組", spec: "買 XIAO S3 可省（內建觸控）", price: null, status: "規劃中" },
+  { name: "鱷魚夾測試線", spec: "臨時接線、不用焊", price: null, status: "規劃中" },
+  { name: "銅箔膠帶", spec: "把觸控區延伸到公仔表面", price: null, status: "規劃中" },
+  { name: "軟包鋰電池（有保護板）", spec: "1000～2000mAh，想要更長續航時", price: null, status: "規劃中" },
   { name: "小型滑動開關", spec: "SS12D00", price: null, status: "待買" },
   { name: "矽膠線、熱縮套管", spec: "26～28 AWG", price: null, status: "待買" },
   { name: "ESP32-C3 SuperMini", spec: "無線小鍵盤用", price: null, status: "規劃中" },
@@ -315,8 +452,13 @@ window.PARTS = [
 
 /* ---------------- 下一步 ---------------- */
 window.ROADMAP = [
-  { id: "r1", group: "硬體", text: "買三用電錶，把升壓模組調到 5.0V" },
-  { id: "r2", group: "硬體", text: "換 1000mAh 以上有保護板的電池，接上開關" },
+  { id: "r1", group: "硬體", text: "買三用電錶，量電池電壓（3.8～3.9V 正常）", done: true },
+  { id: "r1b", group: "硬體", text: "買麵包板、公對母杜邦線、0.96 吋 OLED", done: true },
+  { id: "r1c", group: "硬體", text: "OLED 插麵包板，用公對母杜邦線接 ESP32 測試" },
+  { id: "r2", group: "硬體", text: "買 XIAO ESP32-S3，焊排針，600mAh 電池接 BAT+／BAT− 加開關" },
+  { id: "r2b", group: "互動", text: "買 MPU6050（GY-521），和 OLED 共用 I2C，做「傾斜就滑動」" },
+  { id: "r2c", group: "互動", text: "XIAO S3 內建觸控：摸頭讓狗狗有反應" },
+  { id: "r2d", group: "互動", text: "小狗程式改成 0.96 吋 OLED + 傾斜 + 觸控版" },
   { id: "r3", group: "公仔", text: "決定造型（雪納瑞 / 德國牧羊犬），做輕黏土中空外殼" },
   { id: "r4", group: "公仔", text: "改用短線焊接，把零件裝進公仔" },
   { id: "r5", group: "便利貼螢幕", text: "雲端存便利貼 + 手機編輯網頁" },
@@ -325,6 +467,10 @@ window.ROADMAP = [
   { id: "r8", group: "無線小鍵盤", text: "ESP32-C3 + 機械軸 + 旋鈕，用 ESP-NOW 控制螢幕" },
   { id: "r9", group: "無線小鍵盤", text: "用 OpenSCAD 產生外殼 STL，找代印" },
   { id: "r10", group: "升級", text: "買彩色大螢幕或電子紙，換掉畫面輸出層" },
+  { id: "r11", group: "手機更新", text: "建立 esp32-dog-firmware repo，Actions 編譯出 v1" },
+  { id: "r12", group: "手機更新", text: "USB 上傳 wifi_setup，再用 Minimal SPIFFS 燒入自動更新版" },
+  { id: "r13", group: "手機更新", text: "用手機改一次程式，確認 ESP32 自己更新成功" },
+  { id: "r14", group: "網站", text: "網站放上 GitHub Pages" },
 ];
 
 /* ---------------- 預設學習日誌（之後自己新增的會存在瀏覽器） ---------------- */
@@ -347,4 +493,20 @@ window.BASE_JOURNAL = [
     body: "程式畫的狗很醜 → 請繪圖 AI 畫 sprite sheet → 轉成點陣圖。負片很怪，改成白底黑線就像原圖了。走路一直不自然，最後決定拿掉走路，移動都用跑的。" },
   { id: "b9", date: "2026-10-23", title: "下一步：便利貼螢幕與無線小鍵盤", tags: ["規劃"], mood: "期待",
     body: "上班想放一個桌面小螢幕顯示待辦和 AI 新聞，走手機熱點避開公司網路。之後想買彩色大螢幕，搭配放在手邊的無線機械鍵小鍵盤。" },
+  { id: "b10", date: "2026-10-23", title: "研究無線小鍵盤和外殼", tags: ["規劃", "硬體"], mood: "期待",
+    body: "看了市售的 AI 快捷鍵盤，決定自己做：ESP32-C3 + 機械軸 + 旋鈕，用 ESP-NOW 無線控制螢幕。原來不一定要訂做 PCB，手焊（handwired）加 3D 列印外殼就可以；外殼可以用 OpenSCAD 讓 AI 依精確尺寸產生。" },
+  { id: "b11", date: "2026-10-24", title: "想用手機更新程式：GitHub 自動編譯", tags: ["WiFi", "GitHub Actions"], mood: "學到了",
+    body: "不想在手機存檔案，所以選了全雲端：手機改 GitHub 程式 → Actions 編譯 → ESP32 自己下載。\n**OTA 只換程式區，WiFi 帳密存在 NVS 不會被蓋掉**；帳密也不用寫進公開的程式。" },
+  { id: "b12", date: "2026-10-24", title: "拿掉 BOOT 鍵，改成手機遙控", tags: ["手機控制"], mood: "成就感",
+    body: "裝進公仔後按不到 BOOT 鍵，所以全部改成手機網頁：丟球、切換劇情、立即檢查更新。功能都集中在 `runCommand()`，之後做無線遙控器可以直接用。" },
+  { id: "b13", date: "2026-10-24", title: "學習網站上線 GitHub", tags: ["網站", "里程碑"], mood: "成就感",
+    body: "把學習網站放到 GitHub（esp32-maker-journal）。也研究了自動更新：不想把存取權杖交出去，所以改用 GitHub 自己的 Actions，在 repo 內部完成更新。" },
+  { id: "b14", date: "2026-10-24", title: "研究更小的板子、傾斜和觸控", tags: ["規劃", "硬體"], mood: "期待",
+    body: "看到別人做的作品很小、左右傾斜畫面會跟著動、還有一顆紅色小方塊可以觸控。查到可以用 XIAO（自帶充電）取代 ESP32E + 充電模組，傾斜用 MPU6050，觸控用 TTP223。" },
+  { id: "b15", date: "2026-10-25", title: "第二批採購：電錶、麵包板、0.96 吋 OLED", tags: ["硬體", "採購"], mood: "學到了",
+    body: "買到 0.96 吋 OLED、400 孔麵包板、公對母杜邦線、ZOYI VC921 三用電錶。XIAO ESP32-C3 店裡沒有，都是 S 系列 → S3 一樣可以，還內建觸控。\n店裡的「傾斜模組」是 SW-520D 鋼珠開關，**只知道有沒有斜、分不出方向**，不是我要的，要找 GY-521。" },
+  { id: "b16", date: "2026-10-25", title: "第一次用三用電錶", tags: ["硬體", "安全"], mood: "成就感",
+    body: "⎓V 檔，黑表筆碰黑線、紅表筆碰紅線：電池 3.8～3.9V，正常。數字會跳是因為手不穩，按 H 鍵可以鎖定。接反只會出現負號，不會壞。\n升壓模組先不焊也不用膠帶黏，等 XIAO 到了電池直接接 XIAO。" },
+  { id: "b17", date: "2026-10-25", title: "學會麵包板", tags: ["硬體"], mood: "學到了",
+    body: "同一個數字的 5 個孔相通、中間溝隔開、+／− 長排整條相通。OLED 腳很好插，ESP32 卻插不進去 → 本來就不用插，用公對母杜邦線拉過來。\n兩塊螢幕腳位一樣可以直接換，但 1.3 吋是 SH1106、0.96 吋是 SSD1306，**程式要換一行**。目前先用 1.3 吋。" },
 ];
