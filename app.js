@@ -222,7 +222,9 @@ ${FIXES.map((f) => `
     },
 
     next() {
-      const done = load(KEY_ROAD, {});
+      const saved = load(KEY_ROAD, {});
+      const done = {};
+      ROADMAP.forEach((r) => { done[r.id] = r.id in saved ? saved[r.id] : !!r.done; });
       const groups = [...new Set(ROADMAP.map((r) => r.group))];
       const n = ROADMAP.filter((r) => done[r.id]).length;
       return `
@@ -278,7 +280,9 @@ ${w.gallery && w.gallery.length ? `<h3>相關圖片</h3><div class="figs">${w.ga
   <div class="meta"><span>${esc(e.date)}</span>${e.mood ? `<span class="mood">${esc(e.mood)}</span>` : ""}${(e.tags || []).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
   <h4>${esc(e.title)}</h4>
   <div class="text">${md(e.body)}</div>
-  ${e.image ? `<img src="${esc(e.image)}" alt="">` : ""}
+  ${(e.images && e.images.length ? e.images : (e.image ? [e.image] : [])).map((src) => `<img src="${esc(src)}" alt="" loading="lazy">`).join("")}
+  ${(e.videos || []).map((v) => `<p><a href="${esc(v)}" target="_blank" rel="noopener">▶ 觀看影片</a></p>`).join("")}
+  ${e.issue ? `<div class="meta" style="margin-top:6px"><a href="${esc(e.issue)}" target="_blank" rel="noopener">來自 GitHub Issue</a></div>` : ""}
   ${editable || e.source === "base" || e.source === "published" ? `<div class="ops">
     <button class="btn small" data-edit="${esc(e.id)}">編輯</button>
     ${editable ? `<button class="btn small danger" data-del="${esc(e.id)}">刪除</button>` : ""}
